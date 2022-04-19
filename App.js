@@ -1,38 +1,53 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
+import { StyleSheet, View, FlatList, Button, StatusBar } from 'react-native';
+import GoalInput from './components/GoalInput';
+import GoalItem from './components/GoalItem';
 
 export default function App() {
-  const [enteredGoal, setEnteredGoal] = useState('');
   const [goals, setGoals] = useState([]);
+  const [modalIsVisible, setModalIsVisible] = useState(false);
 
-  const goalHandler = enteredText => {
-    setEnteredGoal(enteredText);
+  const addHandler = enteredText => {
+    setGoals(prevState => [
+      ...prevState,
+      { id: Math.random().toString(), text: enteredText },
+    ]);
+    setModalIsVisible(false);
   };
 
-  const addHandler = () => {
-    setGoals(prevState => [...prevState, enteredGoal]);
-    setEnteredGoal('');
+  const deleteGoal = id => {
+    setGoals(prevState => prevState.filter(item => item.id !== id));
+  };
+
+  const closeModal = () => {
+    setModalIsVisible(false);
   };
 
   return (
-    <View style={styles.appContainer}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Enter a goal"
-          onChangeText={goalHandler}
-          value={enteredGoal}
+    <>
+      <StatusBar style="light" />
+      <View style={styles.appContainer}>
+        <Button
+          title="Add Modal"
+          color="#5e0acc"
+          onPress={() => setModalIsVisible(true)}
         />
-        <Button title="Add Goal" onPress={addHandler} />
+        <GoalInput
+          isVisible={modalIsVisible}
+          closeModal={closeModal}
+          addHandler={addHandler}
+        />
+        <View style={styles.goalsContainer}>
+          <FlatList
+            data={goals}
+            renderItem={({ item }) => (
+              <GoalItem item={item} deleteHandler={deleteGoal} />
+            )}
+            keyExtractor={item => item.id}
+          />
+        </View>
       </View>
-      <View style={styles.goalsContainer}>
-        {goals.map(goal => (
-          <View style={styles.goalItem} key={goal}>
-            <Text style={styles.goalText}>{goal}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
+    </>
   );
 }
 
@@ -42,33 +57,7 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 16,
   },
-  inputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 30,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  textInput: {
-    width: '70%',
-    marginRight: 6,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 6,
-  },
   goalsContainer: {
     flex: 5,
-  },
-  goalItem: {
-    margin: 8,
-    fontSize: 16,
-    backgroundColor: '#5e0acc',
-    padding: 8,
-    borderRadius: 6,
-  },
-  goalText: {
-    color: 'white',
   },
 });
